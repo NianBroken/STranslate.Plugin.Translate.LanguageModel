@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>preview</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <AssemblyName>STranslate.Plugin.Translate.LanguageModel</AssemblyName>
+    <RootNamespace>STranslate.Plugin.Translate.LanguageModel</RootNamespace>
+    <Authors>NianBroken</Authors>
+    <Version>1.0.0</Version>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://www.klaio.top/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NianBroken/STranslate.Plugin.Translate.LanguageModel</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\.artifacts\Debug\Plugins\STranslate.Plugin.Translate.LanguageModel\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\.artifacts\Release\Plugins\STranslate.Plugin.Translate.LanguageModel\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <EnableAutoPackage>true</EnableAutoPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="STranslate.Plugin" Version="1.0.14" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="plugin.json" CopyToOutputDirectory="Always" />
+    <Content Include="icon.png" CopyToOutputDirectory="Always" />
+    <Content Include="..\LICENSE" Link="LICENSE" CopyToOutputDirectory="Always" />
+    <Content Include="..\THIRD-PARTY-LICENSES" Link="THIRD-PARTY-LICENSES" CopyToOutputDirectory="Always" />
+    <Content Include="Languages\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,4 @@
+{
+  "Name": "Language Model Translation",
+  "Description": "Highly configurable large language model translation with custom API endpoint, API key, model ID, request body, request headers, prompts, automatic retries, retry count, timeout, streaming output, and broad provider compatibility."
+}
