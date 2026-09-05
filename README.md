@@ -9,6 +9,8 @@
 - 自定义 API 地址、API 密钥和模型 ID。
 - 自定义 JSON 请求体与请求头。请求体保留合法的非消息字段，`messages`、`contents`、`input` 及提示词内容由插件统一生成，`model`、`stream` 和供应商扩展参数仍可由用户覆盖。
 - `thinking` 按供应商协议从自定义请求体原样发送。以 MiniMax 为例，应填写在请求体中，例如 `{"thinking":{"type":"disabled"}}`，而不是请求头。
+- 自定义请求体中的 `messages`、`contents`、`input` 以及提示词节点由插件生成，用户填写的这些重复字段会被忽略。其他字段按原始 JSON 类型递归合并，`model`、`stream`、`temperature` 和供应商扩展字段可以覆盖默认值。
+- 自定义请求头中的 `Authorization`、`Accept` 和 `Content-Type` 由插件管理，其他合法请求头会按用户填写的类型转换为 HTTP 请求头值。
 - 使用 STranslate 官方提示词模型和编辑窗口，支持 `$source`、`$target`、`$content` 变量。
 - 默认启用流式输出，设置请求体中的 `stream` 为 `false` 可兼容非流式服务。
 - 流式请求按相邻响应数据之间的空闲时间判断超时，只要模型持续返回数据，请求总时长可以超过设置的秒数。非流式请求仍按完整请求总时长判断超时。

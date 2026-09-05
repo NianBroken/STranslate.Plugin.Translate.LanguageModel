@@ -178,8 +178,12 @@ public sealed class Main : LlmTranslatePluginBase
         };
         var headersForLog = string.Join(", ", built.Headers.Select(pair => $"{pair.Key}={RedactHeader(pair.Key, pair.Value)}"));
         var ignoredCustomPaths = built.IgnoredCustomPaths.Count == 0 ? "无" : string.Join(", ", built.IgnoredCustomPaths);
+        var ignoredCustomHeaders = built.IgnoredCustomHeaderKeys.Count == 0 ? "无" : string.Join(", ", built.IgnoredCustomHeaderKeys);
+        var customBodyFields = built.CustomBodyFields.Count == 0 ? "无" : string.Join(", ", built.CustomBodyFields);
+        var customHeaderFields = built.CustomHeaderFields.Count == 0 ? "无" : string.Join(", ", built.CustomHeaderFields);
         _context.Logger.LogInformation("语言模型请求开始。Attempt={Attempt}, RequestTime={RequestTime}, Url={Url}, Model={Model}, Headers={Headers}, TimeoutSeconds={TimeoutSeconds}, TimeoutMode={TimeoutMode}, RequestBodyRaw={RequestBodyRaw}", attempt, requestStarted.ToString("O"), url, _settings.ModelId, headersForLog, _settings.TimeoutSeconds.Value, streamEnabled ? StreamingIdleTimeoutMode : NonStreamingTotalTimeoutMode, built.RawBody);
-        _context.Logger.LogInformation("语言模型自定义请求体字段处理。IgnoredManagedPaths={IgnoredManagedPaths}, CustomFieldsRemain=非消息字段均已保留", ignoredCustomPaths);
+        _context.Logger.LogInformation("语言模型自定义字段处理。IgnoredManagedPaths={IgnoredManagedPaths}, IgnoredCoreHeaders={IgnoredCoreHeaders}, CustomFieldsRemain=非消息字段均已保留", ignoredCustomPaths, ignoredCustomHeaders);
+        _context.Logger.LogInformation("语言模型自定义字段类型。BodyFields={BodyFields}, HeaderFields={HeaderFields}, ThinkingLocation={ThinkingLocation}", customBodyFields, customHeaderFields, customBodyFields.Contains("thinking:", StringComparison.OrdinalIgnoreCase) ? "请求体" : (customHeaderFields.Contains("thinking:", StringComparison.OrdinalIgnoreCase) ? "请求头" : "未填写"));
 
         var parser = new StreamResponseParser();
         var rawResponse = new StringBuilder();
