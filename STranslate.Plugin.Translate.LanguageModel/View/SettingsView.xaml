@@ -16,19 +16,19 @@
         <ikw:SimpleStackPanel HorizontalAlignment="Stretch" Spacing="12">
             <!-- 每张配置卡片采用垂直内容布局，标题说明位于上方，输入控件位于下方，避免窗口放大后出现左右错位。 -->
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="API 地址" Description="填写完整 API 地址，根地址会自动补全 OpenAI 兼容路径。地址末尾加 # 可使用原样地址。">
-                <TextBox HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderThickness="1" Text="{Binding ApiUrl, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" Text="{Binding ApiUrl, UpdateSourceTrigger=PropertyChanged}" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="API 密钥" Description="密钥只用于当前请求，日志中会自动脱敏。">
-                <TextBox HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderThickness="1" Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="模型 ID" Description="填写供应商提供的语言模型 ID。">
-                <TextBox HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderThickness="1" Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="自定义请求体" Description="可留空。填写 JSON 对象时，同名字段覆盖插件内置字段，未填写字段继续保留。">
-                <TextBox HorizontalAlignment="Stretch" MinWidth="0" MinHeight="100" Padding="12,8,12,8" AcceptsReturn="True" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding RequestBodyJson, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
+                <TextBox HorizontalAlignment="Stretch" MinWidth="0" MinHeight="100" Padding="12,8,12,8" AcceptsReturn="True" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding RequestBodyJson, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="自定义请求头" Description="可留空。填写 JSON 对象时，同名请求头覆盖插件内置请求头，未填写请求头继续保留。">
-                <TextBox HorizontalAlignment="Stretch" MinWidth="0" MinHeight="88" Padding="12,8,12,8" AcceptsReturn="True" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding RequestHeadersJson, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
+                <TextBox HorizontalAlignment="Stretch" MinWidth="0" MinHeight="88" Padding="12,8,12,8" AcceptsReturn="True" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" Text="{Binding RequestHeadersJson, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="提示词配置" Description="使用 STranslate 官方提示词功能维护 system、user 和其他角色项。$source、$target、$content 会在翻译请求前自动替换。">
                 <Grid HorizontalAlignment="Stretch" MinWidth="0">
@@ -36,17 +36,17 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0" Margin="0,0,8,0" HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" DisplayMemberPath="Name" ItemsSource="{Binding Main.Prompts}" SelectedItem="{Binding Main.SelectedPrompt, Mode=TwoWay}" />
+                    <ComboBox Grid.Column="0" Margin="0,0,8,0" HorizontalAlignment="Stretch" MinWidth="0" Padding="12,6,12,6" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" DisplayMemberPath="Name" ItemsSource="{Binding Main.Prompts}" SelectedItem="{Binding Main.SelectedPrompt, Mode=TwoWay}" />
                     <Button Grid.Column="1" MinWidth="0" Command="{Binding EditPromptCommand}">
                         <ui:IconAndText Content="编辑提示词" Icon="{x:Static ui:FluentSystemIcons.Edit_24_Regular}" />
                     </Button>
                 </Grid>
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="最大请求次数" Description="必填，必须大于或等于 1。空响应和请求失败都会占用一次请求次数。">
-                <ui:NumberBox Width="180" MinWidth="0" HorizontalAlignment="Left" Padding="12,6,12,6" BorderThickness="1" Minimum="1" SpinButtonPlacementMode="Compact" ValidationMode="InvalidInputOverwritten" Value="{Binding MaxRequestCount, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:NumberBox Width="180" MinWidth="0" HorizontalAlignment="Left" Padding="12,6,12,6" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" Minimum="1" SpinButtonPlacementMode="Compact" ValidationMode="InvalidInputOverwritten" Value="{Binding MaxRequestCount, UpdateSourceTrigger=PropertyChanged}" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="超时时间" Description="必填，必须大于或等于 3 秒。流式请求按相邻响应间隔计时。">
-                <ui:NumberBox Width="180" MinWidth="0" HorizontalAlignment="Left" Padding="12,6,12,6" BorderThickness="1" Minimum="3" SpinButtonPlacementMode="Compact" ValidationMode="InvalidInputOverwritten" Value="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:NumberBox Width="180" MinWidth="0" HorizontalAlignment="Left" Padding="12,6,12,6" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" Minimum="3" SpinButtonPlacementMode="Compact" ValidationMode="InvalidInputOverwritten" Value="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
             </ui:SettingsCard>
             <ui:SettingsCard HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" MinWidth="0" ContentAlignment="Vertical" Header="连接校验与结果" Description="校验请求固定发送空 system 和用户消息“你好”，其余配置使用当前填写内容。结果按流式响应持续显示。">
                 <ikw:SimpleStackPanel HorizontalAlignment="Stretch" MinWidth="0" Spacing="10">
@@ -54,16 +54,12 @@
                         <ui:IconAndText Content="校验" Icon="{x:Static ui:FluentSystemIcons.Play_24_Regular}" />
                     </Button>
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled" MaxHeight="260" VerticalScrollBarVisibility="Auto">
-                        <TextBox HorizontalAlignment="Stretch" MinWidth="0" MinHeight="110" Padding="12,8,12,8" AcceptsReturn="True" BorderThickness="1" FontFamily="Consolas, 'Courier New'" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Text="{Binding ValidationResult, Mode=OneWay}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                        <TextBox HorizontalAlignment="Stretch" MinWidth="0" MinHeight="110" Padding="12,8,12,8" AcceptsReturn="True" BorderBrush="{DynamicResource {x:Static ui:ThemeKeys.ControlStrokeColorDefaultBrushKey}}" BorderThickness="1" FontFamily="Consolas, 'Courier New'" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Text="{Binding ValidationResult, Mode=OneWay}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                     </ScrollViewer>
                 </ikw:SimpleStackPanel>
             </ui:SettingsCard>
             <!-- 仓库入口使用宿主原生超链接按钮，由 WPF 按 NavigateUri 调用操作系统默认浏览器。 -->
-            <ui:HyperlinkButton
-                Margin="0,0,0,12"
-                HorizontalAlignment="Center"
-                Content="在 GitHub 上查看"
-                NavigateUri="https://github.com/NianBroken/STranslate.Plugin.Translate.LanguageModel" />
+            <ui:HyperlinkButton HorizontalAlignment="Left" Content="在 GitHub 上查看" NavigateUri="https://github.com/NianBroken/STranslate.Plugin.Translate.LanguageModel" />
         </ikw:SimpleStackPanel>
     </ui:ScrollViewerEx>
 </UserControl>

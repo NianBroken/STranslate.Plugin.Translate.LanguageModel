@@ -177,7 +177,9 @@ public sealed class Main : LlmTranslatePluginBase
             ContentType = "application/json"
         };
         var headersForLog = string.Join(", ", built.Headers.Select(pair => $"{pair.Key}={RedactHeader(pair.Key, pair.Value)}"));
+        var ignoredCustomPaths = built.IgnoredCustomPaths.Count == 0 ? "无" : string.Join(", ", built.IgnoredCustomPaths);
         _context.Logger.LogInformation("语言模型请求开始。Attempt={Attempt}, RequestTime={RequestTime}, Url={Url}, Model={Model}, Headers={Headers}, TimeoutSeconds={TimeoutSeconds}, TimeoutMode={TimeoutMode}, RequestBodyRaw={RequestBodyRaw}", attempt, requestStarted.ToString("O"), url, _settings.ModelId, headersForLog, _settings.TimeoutSeconds.Value, streamEnabled ? StreamingIdleTimeoutMode : NonStreamingTotalTimeoutMode, built.RawBody);
+        _context.Logger.LogInformation("语言模型自定义请求体字段处理。IgnoredManagedPaths={IgnoredManagedPaths}, CustomFieldsRemain=非消息字段均已保留", ignoredCustomPaths);
 
         var parser = new StreamResponseParser();
         var rawResponse = new StringBuilder();

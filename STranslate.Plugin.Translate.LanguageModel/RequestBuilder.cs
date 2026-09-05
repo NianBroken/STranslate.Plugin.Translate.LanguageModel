@@ -11,6 +11,12 @@ namespace STranslate.Plugin.Translate.LanguageModel;
 internal static class RequestBuilder
 {
     private const string DefaultAccept = "text/event-stream";
+    private static readonly HashSet<string> ManagedMessageKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "messages",
+        "contents",
+        "input"
+    };
 
     /// <summary>
     /// 根据当前提示词和设置生成请求正文及请求头。
@@ -25,9 +31,10 @@ internal static class RequestBuilder
         // 这样仍然保留 model、stream 等未覆盖字段，同时避免不同供应商的消息节点并存。
         var messageShape = DetectMessageShape(customBody);
         var request = CreateDefaultRequest(settings.ModelId, promptItems, messageShape);
+        var ignoredPaths = new List<string>();
 
         if (customBody is not null)
-            MergeObjects(request, customBody);
+            MergeCustomFields(request, customBody, ignoredPaths);
 
         InjectPromptItems(request, promptItems, messageShape);
 
@@ -47,7 +54,8 @@ internal static class RequestBuilder
         return new BuiltRequest(
             request,
             headers,
-            request.ToJsonString(new JsonSerializerOptions { WriteIndented = false }));
+            request.ToJsonString(new JsonSerializerOptions { WriteIndented = false }),
+            ignoredPaths);
     }
 
     private static JsonObject CreateDefaultRequest(string modelId, IReadOnlyList<PromptItem> promptItems, MessageShape messageShape)
@@ -161,18 +169,26 @@ internal static class RequestBuilder
     }
 
     /// <summary>
-    /// 递归合并对象。键名不区分大小写，数组整体由用户值覆盖。
+    /// 递归合并非消息字段。根级消息节点属于插件生成内容，用户重复填写时被忽略，
+    /// 其他字段按大小写不敏感方式合并，数组由用户值整体覆盖。
     /// </summary>
-    private static void MergeObjects(JsonObject target, JsonObject source)
+    private static void MergeCustomFields(JsonObject target, JsonObject source, ICollection<string> ignoredPaths, string path = "")
     {
         foreach (var property in source)
         {
+            var propertyPath = string.IsNullOrEmpty(path) ? property.Key : $"{path}.{property.Key}";
+            if (string.IsNullOrEmpty(path) && ManagedMessageKeys.Contains(property.Key))
+            {
+                ignoredPaths.Add(propertyPath);
+                continue;
+            }
+
             var existingName = target.Select(item => item.Key)
                 .FirstOrDefault(name => string.Equals(name, property.Key, StringComparison.OrdinalIgnoreCase));
 
             if (existingName is not null && target[existingName] is JsonObject existingObject && property.Value is JsonObject sourceObject)
             {
-                MergeObjects(existingObject, sourceObject);
+                MergeCustomFields(existingObject, sourceObject, ignoredPaths, propertyPath);
                 continue;
             }
 
@@ -204,7 +220,7 @@ internal static class RequestBuilder
     }
 }
 
-internal sealed record BuiltRequest(JsonObject Body, Dictionary<string, string> Headers, string RawBody);
+internal sealed record BuiltRequest(JsonObject Body, Dictionary<string, string> Headers, string RawBody, IReadOnlyList<string> IgnoredCustomPaths);
 
 /// <summary>语言模型请求中承载提示词的根级 JSON 结构。</summary>
 internal enum MessageShape
