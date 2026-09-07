@@ -38,8 +38,8 @@ public sealed class Main : LlmTranslatePluginBase
         return _settingUi;
     }
 
-    public override string? GetSourceLanguage(LangEnum langEnum) => GetLanguageName(langEnum);
-    public override string? GetTargetLanguage(LangEnum langEnum) => GetLanguageName(langEnum);
+    public override string? GetSourceLanguage(LangEnum langEnum) => _context.GetTranslation($"LangEnum{langEnum}");
+    public override string? GetTargetLanguage(LangEnum langEnum) => _context.GetTranslation($"LangEnum{langEnum}");
 
     public override void Init(IPluginContext context)
     {
@@ -290,41 +290,6 @@ public sealed class Main : LlmTranslatePluginBase
         }
         return true;
     }
-
-    private static string? GetLanguageName(LangEnum language) => language switch
-    {
-        LangEnum.Auto => "Auto-detect",
-        LangEnum.ChineseSimplified => "Simplified Chinese",
-        LangEnum.ChineseTraditional => "Traditional Chinese",
-        LangEnum.Cantonese => "Cantonese",
-        LangEnum.English => "English",
-        LangEnum.Japanese => "Japanese",
-        LangEnum.Korean => "Korean",
-        LangEnum.French => "French",
-        LangEnum.Spanish => "Spanish",
-        LangEnum.Russian => "Russian",
-        LangEnum.German => "German",
-        LangEnum.Italian => "Italian",
-        LangEnum.Turkish => "Turkish",
-        LangEnum.PortuguesePortugal or LangEnum.PortugueseBrazil => "Portuguese",
-        LangEnum.Vietnamese => "Vietnamese",
-        LangEnum.Indonesian => "Indonesian",
-        LangEnum.Thai => "Thai",
-        LangEnum.Malay => "Malay",
-        LangEnum.Arabic => "Arabic",
-        LangEnum.Hindi => "Hindi",
-        LangEnum.MongolianCyrillic or LangEnum.MongolianTraditional => "Mongolian",
-        LangEnum.Khmer => "Central Khmer",
-        LangEnum.NorwegianBokmal => "Norwegian Bokmål",
-        LangEnum.NorwegianNynorsk => "Norwegian Nynorsk",
-        LangEnum.Persian => "Persian",
-        LangEnum.Swedish => "Swedish",
-        LangEnum.Polish => "Polish",
-        LangEnum.Dutch => "Dutch",
-        LangEnum.Ukrainian => "Ukrainian",
-        LangEnum.Uzbek => "Uzbek",
-        _ => null
-    };
 
     private static string BuildFailureMessage(string title, Exception exception, int attempts, AttemptDiagnostics? diagnostics) => string.Join(Environment.NewLine, title, $"异常类型：{exception.GetType().FullName}", $"异常信息：{exception.Message}", $"已执行请求次数：{attempts}", diagnostics is null ? "最近一次请求诊断：无" : $"最近一次请求时间：{diagnostics.RequestStarted:O}{Environment.NewLine}请求完成时间：{diagnostics.ResponseCompleted:O}{Environment.NewLine}请求地址：{diagnostics.Url}{Environment.NewLine}请求头：{diagnostics.Headers}{Environment.NewLine}请求体 RAW：{diagnostics.RawRequest}{Environment.NewLine}最近一次响应 RAW：{diagnostics.RawResponse}", diagnostics is null ? "响应行数：无" : $"响应行数：{diagnostics.ResponseLineCount}{Environment.NewLine}首次响应时间：{diagnostics.FirstResponseAt?.ToString("O") ?? "无"}{Environment.NewLine}最近一次响应时间：{diagnostics.LastResponseAt?.ToString("O") ?? "无"}{Environment.NewLine}最大相邻响应间隔毫秒数：{diagnostics.MaxInterResponseWaitMilliseconds}{Environment.NewLine}超时模式：{diagnostics.TimeoutMode}", $"异常堆栈：{exception}");
 
