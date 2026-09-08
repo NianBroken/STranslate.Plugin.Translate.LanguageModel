@@ -3,7 +3,7 @@
   "Name": "语言模型翻译",
   "Description": "高度可配置的大语言模型翻译插件，支持自定义 API 地址、API 密钥、模型 ID、请求体、请求头和官方提示词，可使用 source、target、content 变量，提供自动重试、最大请求次数、超时时间、流式输出以及多种语言模型协议兼容能力。",
   "Author": "NianBroken",
-  "Version": "1.0.3",
+  "Version": "1.0.4",
   "Website": "https://www.klaio.top/",
   "ExecuteFileName": "STranslate.Plugin.Translate.LanguageModel.dll",
   "IconPath": "icon.png"

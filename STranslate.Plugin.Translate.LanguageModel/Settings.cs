@@ -24,7 +24,7 @@ public sealed class Settings
     public string RequestHeadersJson { get; set; } = string.Empty;
 
     /// <summary>使用 STranslate 官方 Prompt 模型维护 system、user 和其他角色项。</summary>
-    public List<Prompt> Prompts { get; set; } = null!;
+    public List<Prompt> Prompts { get; set; } = [];
 
     /// <summary>一次翻译允许使用的最大请求次数。</summary>
     public int? MaxRequestCount { get; set; }

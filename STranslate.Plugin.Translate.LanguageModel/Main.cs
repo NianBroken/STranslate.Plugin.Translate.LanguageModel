@@ -45,29 +45,9 @@ public sealed class Main : LlmTranslatePluginBase
     {
         _context = context;
         _settings = context.LoadSettingStorage<Settings>();
+        _settings.Prompts ??= [];
         Prompts.Clear();
-        if (_settings.Prompts is null || _settings.Prompts.Count == 0)
-        {
-            _settings.Prompts =
-            [
-                new Prompt("语言模型翻译",
-                [
-                    new PromptItem("system", string.Empty),
-                    new PromptItem("user", string.Empty)
-                ], true)
-            ];
-            _context.SaveSettingStorage<Settings>();
-        }
-
-        foreach (var prompt in _settings.Prompts)
-            Prompts.Add(prompt);
-
-        if (Prompts.All(prompt => !prompt.IsEnabled) && Prompts.Count > 0)
-        {
-            Prompts[0].IsEnabled = true;
-            _settings.Prompts = Prompts.Select(item => item.Clone()).ToList();
-            _context.SaveSettingStorage<Settings>();
-        }
+        _settings.Prompts.ForEach(Prompts.Add);
     }
 
     public override void Dispose() => _viewModel?.Dispose();
@@ -94,13 +74,17 @@ public sealed class Main : LlmTranslatePluginBase
             result.Success(translated);
             _context.Logger.LogInformation("语言模型翻译成功。TextLength={TextLength}, DurationMilliseconds={DurationMilliseconds}", translated.Length, (DateTimeOffset.Now - started).TotalMilliseconds);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            throw;
+            var message = BuildFailureMessage("语言模型翻译已取消", ex, 0, null);
+            _context.Logger.LogWarning(ex, "语言模型翻译已取消。{Message}", message);
+            result.Success(message);
         }
         catch (Exception ex)
         {
-            var message = BuildFailureMessage("语言模型翻译请求失败", ex, 0, null);
+            var message = ex is RetryExhaustedException exhausted
+                ? exhausted.Message
+                : BuildFailureMessage("语言模型翻译请求失败", ex, 0, null);
             _context.Logger.LogError(ex, "语言模型翻译执行失败。{Message}", message);
             // 宿主在失败状态下可能不发布结果文本，因此将完整诊断文本作为结果返回，保证用户能够看到实际问题。
             result.Success(message);
@@ -140,7 +124,10 @@ public sealed class Main : LlmTranslatePluginBase
                 var diagnostics = await ExecuteAttemptAsync(promptItems, attempt, onTextUpdated, cancellationToken);
                 lastDiagnostics = diagnostics;
                 if (!string.IsNullOrWhiteSpace(diagnostics.Text))
+                {
+                    _context.Logger.LogInformation("语言模型请求成功。Attempt={Attempt}, TextLength={TextLength}", attempt, diagnostics.Text.Length);
                     return diagnostics.Text.Trim();
+                }
                 lastException = new InvalidOperationException("模型响应中没有非空文本。");
                 _context.Logger.LogWarning("语言模型返回空内容，将继续重试。Attempt={Attempt}", attempt);
             }
@@ -157,8 +144,14 @@ public sealed class Main : LlmTranslatePluginBase
             }
         }
 
+        var failure = BuildFailureMessage(
+            $"语言模型请求失败，已用完全部 {maxAttempts} 次请求次数",
+            lastException ?? new InvalidOperationException("模型没有返回非空文本。"),
+            maxAttempts,
+            lastDiagnostics);
+        _context.Logger.LogError("{Failure}", failure);
         throw new RetryExhaustedException(
-            BuildFailureMessage($"语言模型请求失败，已用完全部 {maxAttempts} 次请求次数", lastException ?? new InvalidOperationException("模型没有返回非空文本。"), maxAttempts, lastDiagnostics),
+            failure,
             lastException,
             lastDiagnostics);
     }
@@ -208,7 +201,12 @@ public sealed class Main : LlmTranslatePluginBase
                     }
                     catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutCts.IsCancellationRequested)
                     {
-                        throw new TimeoutException($"流式响应空闲超时。超时时间：{timeout.TotalSeconds:0} 秒，最近一次响应时间：{lastResponseAt?.ToString("O") ?? "无"}，已接收响应行数：{responseLineCount}，当前累计文本长度：{parser.CurrentText.Length}。请求已经收到部分响应，但连续等待超过配置的相邻响应间隔。");
+                        throw new StreamIdleTimeoutException(
+                            timeout,
+                            lastResponseAt,
+                            responseLineCount,
+                            parser.CurrentText.Length,
+                            requestStarted);
                     }
                     finally
                     {
@@ -235,6 +233,7 @@ public sealed class Main : LlmTranslatePluginBase
             {
                 var response = await _context.HttpService.PostAsync(url, built.Body, options, cancellationToken);
                 rawResponse.Append(response);
+                _context.Logger.LogInformation("语言模型普通响应 RAW。Attempt={Attempt}, ResponseTime={ResponseTime}, RawBody={RawBody}", attempt, DateTimeOffset.Now.ToString("O"), response);
                 parser.AppendNonStreamingResponse(response);
                 onTextUpdated?.Invoke(parser.CurrentText);
             }
@@ -243,11 +242,15 @@ public sealed class Main : LlmTranslatePluginBase
             _context.Logger.LogInformation("语言模型响应完成。Attempt={Attempt}, ResponseTime={ResponseTime}, ResponseBodyRaw={ResponseBodyRaw}, ResponseLineCount={ResponseLineCount}, FirstResponseTime={FirstResponseTime}, LastResponseTime={LastResponseTime}, MaxInterResponseWaitMilliseconds={MaxInterResponseWaitMilliseconds}, TimeoutMode={TimeoutMode}, TextLength={TextLength}", attempt, completed.ToString("O"), rawResponse.ToString(), responseLineCount, firstResponseAt?.ToString("O") ?? "无", lastResponseAt?.ToString("O") ?? "无", maxInterResponseWaitMilliseconds, streamEnabled ? StreamingIdleTimeoutMode : NonStreamingTotalTimeoutMode, parser.CurrentText.Length);
             return new AttemptDiagnostics(parser.CurrentText, rawResponse.ToString(), requestStarted, completed, url, built.RawBody, headersForLog, responseLineCount, firstResponseAt, lastResponseAt, maxInterResponseWaitMilliseconds, streamEnabled ? StreamingIdleTimeoutMode : NonStreamingTotalTimeoutMode);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             var completed = DateTimeOffset.Now;
             var diagnostics = new AttemptDiagnostics(parser.CurrentText, rawResponse.ToString(), requestStarted, completed, url, built.RawBody, headersForLog, responseLineCount, firstResponseAt, lastResponseAt, maxInterResponseWaitMilliseconds, streamEnabled ? StreamingIdleTimeoutMode : NonStreamingTotalTimeoutMode);
-            _context.Logger.LogError(ex, "语言模型响应异常。Attempt={Attempt}, ResponseTime={ResponseTime}, ResponseBodyRaw={ResponseBodyRaw}, ResponseLineCount={ResponseLineCount}", attempt, completed.ToString("O"), rawResponse.ToString(), responseLineCount);
+            _context.Logger.LogError(ex, "语言模型响应异常。Attempt={Attempt}, ResponseTime={ResponseTime}, ResponseBodyRaw={ResponseBodyRaw}, ResponseLineCount={ResponseLineCount}, FirstResponseTime={FirstResponseTime}, LastResponseTime={LastResponseTime}, MaxInterResponseWaitMilliseconds={MaxInterResponseWaitMilliseconds}, TimeoutMode={TimeoutMode}", attempt, completed.ToString("O"), rawResponse.ToString(), responseLineCount, firstResponseAt?.ToString("O") ?? "无", lastResponseAt?.ToString("O") ?? "无", maxInterResponseWaitMilliseconds, streamEnabled ? StreamingIdleTimeoutMode : NonStreamingTotalTimeoutMode);
             throw new AttemptFailedException($"第 {attempt} 次请求失败，响应 RAW：{rawResponse}", diagnostics, ex);
         }
     }
@@ -297,5 +300,28 @@ public sealed class Main : LlmTranslatePluginBase
 
     private sealed record AttemptDiagnostics(string Text, string RawResponse, DateTimeOffset RequestStarted, DateTimeOffset ResponseCompleted, string Url, string RawRequest, string Headers, int ResponseLineCount, DateTimeOffset? FirstResponseAt, DateTimeOffset? LastResponseAt, double MaxInterResponseWaitMilliseconds, string TimeoutMode);
     private sealed class AttemptFailedException(string message, AttemptDiagnostics diagnostics, Exception innerException) : Exception(message, innerException) { public AttemptDiagnostics Diagnostics { get; } = diagnostics; }
+
+    private sealed class StreamIdleTimeoutException : TimeoutException
+    {
+        public StreamIdleTimeoutException(TimeSpan timeout, DateTimeOffset? lastResponseAt, int responseLineCount, int textLength, DateTimeOffset requestStarted)
+            : base(string.Join(Environment.NewLine,
+                "流式响应空闲超时",
+                $"超时时间：{timeout.TotalSeconds:0} 秒",
+                $"最近一次响应时间：{lastResponseAt?.ToString("O") ?? "无"}",
+                $"已接收响应行数：{responseLineCount}",
+                $"当前累计文本长度：{textLength}",
+                $"请求开始时间：{requestStarted:O}",
+                "请求已经收到部分响应，但连续等待超过配置的相邻响应间隔。"))
+        {
+            LastResponseAt = lastResponseAt;
+            ResponseLineCount = responseLineCount;
+            TextLength = textLength;
+        }
+
+        public DateTimeOffset? LastResponseAt { get; }
+        public int ResponseLineCount { get; }
+        public int TextLength { get; }
+    }
+
     private sealed class RetryExhaustedException(string message, Exception? innerException, AttemptDiagnostics? diagnostics) : Exception(message, innerException) { public AttemptDiagnostics? Diagnostics { get; } = diagnostics; }
 }

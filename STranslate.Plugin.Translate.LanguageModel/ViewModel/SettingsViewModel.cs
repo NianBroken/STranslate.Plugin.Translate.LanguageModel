@@ -83,8 +83,8 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            ValidationResult = ex.Message;
-            _context.Logger.LogError(ex, "语言模型翻译校验失败。{Message}", ex.Message);
+            ValidationResult = FormatValidationError(ex);
+            _context.Logger.LogError(ex, "语言模型翻译校验失败。{Message}", ValidationResult);
         }
         finally
         {
@@ -100,9 +100,25 @@ public partial class SettingsViewModel : ObservableObject, IDisposable
         if (dialog.ShowDialog() != true) return;
         _settings.Prompts = _main.Prompts.Select(prompt => prompt.Clone()).ToList();
         _context.SaveSettingStorage<Settings>();
+        _main.SelectedPrompt = _main.Prompts.FirstOrDefault(prompt => prompt.IsEnabled);
     }
 
     private static int? ConvertNumber(double? value) => value is null || double.IsNaN(value.Value) || double.IsInfinity(value.Value) ? null : (int)Math.Truncate(value.Value);
+
+    private static string FormatValidationError(Exception exception)
+    {
+        var requestDiagnostics = exception.Message.Contains("已执行请求次数：", StringComparison.Ordinal)
+            ? exception.Message
+            : string.Join(Environment.NewLine,
+                $"异常信息：{exception.Message}",
+                "已执行请求次数：0",
+                "最近一次请求诊断：无");
+        return string.Join(Environment.NewLine,
+            "语言模型翻译校验失败",
+            $"异常类型：{exception.GetType().FullName}",
+            requestDiagnostics,
+            $"异常堆栈：{exception}");
+    }
 
     public void Dispose()
     {

@@ -14,7 +14,10 @@ internal sealed class StreamResponseParser
     private readonly StringBuilder _text = new();
     private bool _insideThinkTag;
 
-    public string CurrentText => RemoveHiddenText(_text.ToString());
+    /// <summary>
+    /// 读取已经过滤思考标签和模型附带元数据声明后的用户可见文本。
+    /// </summary>
+    public string CurrentText => RemoveMetadataStatements(_text.ToString());
 
     public string AppendStreamLine(string line)
     {
@@ -158,10 +161,17 @@ internal sealed class StreamResponseParser
         ?? ReadText(root["response"]?["error"]?["message"])
         ?? ReadText(string.Equals(root["type"]?.ToString(), "error", StringComparison.OrdinalIgnoreCase) ? root["message"] : null);
 
-    private static string RemoveHiddenText(string text)
+    private static string RemoveMetadataStatements(string text)
     {
-        var result = Regex.Replace(text, "<think>.*?</think>", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-        result = Regex.Replace(result, "<think>.*$", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-        return result.Trim();
+        var withoutThinking = Regex.Replace(text, "<think>.*?</think>", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        withoutThinking = Regex.Replace(withoutThinking, "<think>.*$", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        var filteredLines = withoutThinking.Split('\n')
+            .Where(line => !line.Contains("无位置信息", StringComparison.OrdinalIgnoreCase)
+                           && !line.Contains("无法标注", StringComparison.OrdinalIgnoreCase)
+                           && !line.Contains("图上选中文本", StringComparison.OrdinalIgnoreCase)
+                           && !line.Contains("坐标信息", StringComparison.OrdinalIgnoreCase)
+                           && !line.Contains("bounding box", StringComparison.OrdinalIgnoreCase)
+                           && !line.Contains("bounding boxes", StringComparison.OrdinalIgnoreCase));
+        return string.Join("\n", filteredLines).Trim();
     }
 }

@@ -31,6 +31,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          body_path: CHANGELOG.md
+          generate_release_notes: true
           draft: false
           files: ./.artifacts/Release/Plugins/STranslate.Plugin.Translate.LanguageModel/plugins/STranslate.Plugin.Translate.LanguageModel.spkg
