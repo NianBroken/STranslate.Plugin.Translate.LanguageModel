@@ -12,9 +12,9 @@
     <AssemblyName>STranslate.Plugin.Translate.LanguageModel</AssemblyName>
     <RootNamespace>STranslate.Plugin.Translate.LanguageModel</RootNamespace>
     <Authors>NianBroken</Authors>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://www.klaio.top/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/NianBroken/STranslate.Plugin.Translate.LanguageModel</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NianBroken/STranslate.Plugin.Translate.LanguageModel</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

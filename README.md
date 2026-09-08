@@ -49,6 +49,5 @@ Release 安装包位于：
 ## 作者与许可证
 
 - 作者：NianBroken
-- 作者主页：<https://www.klaio.top/>
 - 源代码：<https://github.com/NianBroken/STranslate.Plugin.Translate.LanguageModel>
 - 许可证：[Apache License 2.0](LICENSE)
